@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MhamadAI - AI Image Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a2e;
+            --accent: #7c3aed;
+            --accent-light: #a78bfa;
+            --accent-glow: rgba(124, 58, 237, 0.3);
+            --text-primary: #f1f1f7;
+            --text-secondary: #8888a4;
+            --border: #2a2a3e;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-gradient .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .bg-gradient .orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: #7c3aed;
+            top: -200px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-gradient .orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: #3b82f6;
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -7s;
+        }
+
+        .bg-gradient .orb:nth-child(3) {
+            width: 400px;
+            height: 400px;
+            background: #ec4899;
+            top: 50%;
+            left: 50%;
+            animation-delay: -14s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-30px, 30px) scale(0.95); }
+            75% { transform: translate(40px, 20px) scale(1.05); }
+        }
+
+        /* Nav */
+        nav {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            background: rgba(10, 10, 15, 0.7);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-badge {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: none;
+            cursor: default;
+        }
+
+        /* Main */
+        main {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--accent-light);
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -1.5px;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 .gradient {
+            background: linear-gradient(135deg, #a78bfa, #60a5fa, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* Prompt box */
+        .prompt-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .prompt-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            font-weight: 500;
+        }
+
+        .prompt-textarea {
+            width: 100%;
+            min-height: 100px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .prompt-textarea::placeholder {
+            color: #555570;
+        }
+
+        .prompt-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .prompt-options {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .model-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        .model-select .model-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        .generate-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .generate-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Loading state */
+        .loading-container {
+            display: none;
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .loading-container.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-ring {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .loading-ring svg {
+            width: 80px;
+            height: 80px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-ring circle {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        .loading-ring .track {
+            stroke: var(--border);
+        }
+
+        .loading-ring .progress {
+            stroke: url(#gradient);
+            stroke-dasharray: 200;
+            stroke-dashoffset: 120;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+
+        @keyframes dash {
+            0% { stroke-dashoffset: 200; }
+            50% { stroke-dashoffset: 80; }
+            100% { stroke-dashoffset: 200; }
+        }
+
+        .loading-status {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            min-height: 28px;
+        }
+
+        .loading-substatus {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .progress-bar-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 100px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6, #ec4899);
+            border-radius: 100px;
+            transition: width 0.4s ease;
+        }
+
+        .loading-percent {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Result */
+        .result-container {
+            display: none;
+        }
+
+        .result-container.active {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .result-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 16px;
+        }
+
+        .result-meta span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .result-image-wrapper {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+
+        .result-image-wrapper img {
+            width: 100%;
+            display: block;
+            border-radius: 16px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .result-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .result-action-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        /* Gallery section */
+        .gallery-section {
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+        }
+
+        .gallery-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .gallery-item {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.02);
+            border-color: var(--accent);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 60px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            nav { padding: 16px 20px; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.2rem; }
+            .prompt-options { flex-direction: column; align-items: stretch; }
+            .generate-btn { justify-content: center; }
+            .result-actions { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+
+    <nav>
+        <div class="logo">
+            <div class="logo-icon">M</div>
+            <span>MhamadAI</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#">Generate</a></li>
+            <li><a href="#">Gallery</a></li>
+            <li><a href="#">Pricing</a></li>
+            <li><a href="#">API</a></li>
+        </ul>
+        <div class="nav-badge">Beta v2.4</div>
+    </nav>
+
+    <main>
+        <div class="hero">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                Model online — MhamadAI Diffusion v2
+            </div>
+            <h1>Create stunning images<br>with <span class="gradient">MhamadAI</span></h1>
+            <p>Turn your ideas into breathtaking visuals in seconds. Powered by our state-of-the-art generative AI model.</p>
+        </div>
+
+        <div class="prompt-container">
+            <div class="prompt-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                Describe your image
+            </div>
+            <textarea class="prompt-textarea" id="promptInput" placeholder="A futuristic city skyline at sunset with flying cars and neon lights reflecting off glass towers..."></textarea>
+            <div class="prompt-options">
+                <div class="model-select">
+                    <span class="model-dot"></span>
+                    MhamadAI Diffusion v2 — 1024x1024
+                </div>
+                <button class="generate-btn" id="generateBtn" onclick="startGeneration()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    Generate
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-container" id="loadingContainer">
+            <div class="loading-ring">
+                <svg viewBox="0 0 80 80">
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#7c3aed"/>
+                            <stop offset="50%" stop-color="#3b82f6"/>
+                            <stop offset="100%" stop-color="#ec4899"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="track" cx="40" cy="40" r="34"/>
+                    <circle class="progress" cx="40" cy="40" r="34"/>
+                </svg>
+            </div>
+            <div class="loading-status" id="loadingStatus">Initializing...</div>
+            <div class="loading-substatus" id="loadingSubstatus">Connecting to MhamadAI servers</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="loading-percent" id="loadingPercent">0%</div>
+        </div>
+
+        <!-- Result -->
+        <div class="result-container" id="resultContainer">
+            <div class="result-header">
+                <h3>Generated Image</h3>
+                <div class="result-meta">
+                    <span>1024 x 1024</span>
+                    <span>MhamadAI Diffusion v2</span>
+                </div>
+            </div>
+            <div class="result-image-wrapper">
+                <img id="resultImage" src="" alt="Generated image">
+            </div>
+            <div class="result-actions">
+                <button class="result-action-btn" onclick="downloadImage()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download
+                </button>
+                <button class="result-action-btn" onclick="startGeneration()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                    Regenerate
+                </button>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="gallery-section" id="gallerySection" style="display:none;">
+            <h3>Recent Generations</h3>
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 MhamadAI. All rights reserved. Built with advanced generative AI technology.</p>
+    </footer>
+
+    <script>
+        const images = [
+            'imgs/hf_20260326_165901_5f5b5ab8-5f76-4a7a-986a-329f0d6530c9.jpeg',
+            'imgs/hf_20260326_165915_0c58aa92-17f9-4a65-a836-fbb080eb1269.jpeg',
+            'imgs/hf_20260326_170052_045a4524-2d08-42a6-a4cf-df4f7f004a62.jpeg',
+            'imgs/hf_20260326_170737_ceaef7ab-e2db-4a84-a88a-f42a4fa5366e.jpeg'
+        ];
+
+        const loadingSteps = [
+            { status: 'Analyzing your prompt...', sub: 'Understanding context and composition', pct: 10 },
+            { status: 'Interpreting visual concepts...', sub: 'Mapping keywords to visual elements', pct: 20 },
+            { status: 'Building scene composition...', sub: 'Arranging layout and perspective', pct: 35 },
+            { status: 'Generating base image...', sub: 'Running diffusion model — step 1/50', pct: 45 },
+            { status: 'Generating base image...', sub: 'Running diffusion model — step 18/50', pct: 55 },
+            { status: 'Adding fine details...', sub: 'Enhancing textures and lighting', pct: 70 },
+            { status: 'Refining output...', sub: 'Upscaling to 1024x1024', pct: 82 },
+            { status: 'Applying final touches...', sub: 'Color correction and post-processing', pct: 92 },
+            { status: 'Almost done...', sub: 'Preparing your image', pct: 98 },
+        ];
+
+        let history = [];
+
+        function startGeneration() {
+            const prompt = document.getElementById('promptInput').value.trim();
+            if (!prompt) {
+                document.getElementById('promptInput').focus();
+                document.getElementById('promptInput').style.borderColor = '#ef4444';
+                setTimeout(() => {
+                    document.getElementById('promptInput').style.borderColor = '';
+                }, 1500);
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+
+            document.getElementById('resultContainer').classList.remove('active');
+            document.getElementById('loadingContainer').classList.add('active');
+
+            let stepIndex = 0;
+            const totalDuration = 5500;
+            const stepDelay = totalDuration / loadingSteps.length;
+
+            function nextStep() {
+                if (stepIndex < loadingSteps.length) {
+                    const step = loadingSteps[stepIndex];
+                    document.getElementById('loadingStatus').textContent = step.status;
+                    document.getElementById('loadingSubstatus').textContent = step.sub;
+                    document.getElementById('progressBar').style.width = step.pct + '%';
+                    document.getElementById('loadingPercent').textContent = step.pct + '%';
+                    stepIndex++;
+                    setTimeout(nextStep, stepDelay + (Math.random() * 200 - 100));
+                } else {
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('loadingPercent').textContent = '100%';
+                    setTimeout(showResult, 400);
+                }
+            }
+
+            nextStep();
+        }
+
+        function showResult() {
+            const randomImg = images[Math.floor(Math.random() * images.length)];
+
+            document.getElementById('resultImage').src = randomImg;
+            document.getElementById('loadingContainer').classList.remove('active');
+            document.getElementById('resultContainer').classList.add('active');
+            document.getElementById('generateBtn').disabled = false;
+
+            history.unshift(randomImg);
+            updateGallery();
+        }
+
+        function updateGallery() {
+            if (history.length === 0) return;
+            document.getElementById('gallerySection').style.display = 'block';
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '';
+            history.forEach(src => {
+                const div = document.createElement('div');
+                div.className = 'gallery-item';
+                div.innerHTML = `<img src="${src}" alt="Generated">`;
+                grid.appendChild(div);
+            });
+        }
+
+        function downloadImage() {
+            const img = document.getElementById('resultImage');
+            const a = document.createElement('a');
+            a.href = img.src;
+            a.download = 'mhamadai-generation.jpeg';
+            a.click();
+        }
+    </script>
+</body>
+</html>
